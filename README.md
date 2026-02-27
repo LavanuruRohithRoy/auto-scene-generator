@@ -316,5 +316,3 @@ If future external APIs are added, create a `.env` file (not committed to git) a
 
 Educational and experimental use.
 ```
-
----
