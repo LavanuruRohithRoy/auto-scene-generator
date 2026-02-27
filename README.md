@@ -1,130 +1,163 @@
-# AI Shorts Engine
+# AI Shorts Engine (Local Autonomous Pipeline)
 
-A fully local AI-powered short video generation pipeline.
+An end-to-end fully local AI-powered short video generation system.
 
 This system automatically generates:
 
-- Structured educational scripts (LLM)
-- Scene abstraction with timing
-- Voice narration (TTS)
-- AI-generated images (Stable Diffusion)
-- Media assets ready for video assembly
+- Structured script (LLM – Ollama)
+- Scene breakdown
+- Neural voice narration
+- AI-generated cinematic images (Stable Diffusion)
+- Background music mix
+- Final stitched vertical video (FFmpeg)
+- API endpoint for automation (FastAPI)
+- n8n workflow integration (Docker self-hosted)
 
-Designed for batch short-form educational content generation and system architecture learning.
-
----
-
-## Architecture Overview
-
-Pipeline Flow:
-
-1. Topic Input  
-2. Script Generation (Ollama + Mistral 7B)  
-3. Scene Builder (Text → Timed Segments)  
-4. Audio Engine (TTS + Real Duration Detection)  
-5. Image Engine (Stable Diffusion local CPU)  
-6. Video Assembly (FFmpeg – upcoming stage)  
-7. Optional Automation (n8n Docker orchestration)
-
-Each layer is modular and independent.
+Everything runs locally. No cloud dependency required.
 
 ---
 
-## System Requirements
+# System Architecture
 
-This project runs fully locally. Performance depends heavily on hardware.
-
-### Minimum Recommended
-
-- 16GB RAM
-- Modern multi-core CPU
-- 10GB+ free disk space (model downloads)
-- Python 3.11+
-
-### GPU
-
-GPU is NOT required.
-
-Stable Diffusion is configured to run on CPU.
-
-If you have a modern NVIDIA GPU (8GB+ VRAM), the system can later be upgraded to GPU acceleration.
-
----
-
-## Performance Expectations (CPU Setup)
-
-Performance varies depending on:
-
-- CPU speed
-- Available RAM
-- Disk speed
-- Background processes
-
-Typical timings (CPU-only system):
-
-- Script generation (Mistral 7B): ~60–100 seconds
-- Image generation (Stable Diffusion CPU): ~60–120 seconds per image
-- Audio generation (gTTS): <3 seconds per scene
-
-This system is designed for batch processing, not real-time serving.
+User Topic
+   ↓
+Ollama (LLM – Script JSON)
+   ↓
+Scene Engine (Text → Timed Scenes)
+   ↓
+Audio Engine (Edge TTS)
+   ↓
+Image Engine (Stable Diffusion v1.5)
+   ↓
+Video Engine (FFmpeg Assembly + BGM)
+   ↓
+Final MP4 Output
+   ↓
+FastAPI Endpoint (/generate)
+   ↓
+n8n Workflow Automation
 
 ---
 
-## Project Structure
+# Core Technologies Used
+
+## 1. Ollama (LLM)
+- Model: mistral
+- Purpose: Generates structured JSON script
+- Runs locally on port 11434
+- No API keys required
+
+Used for:
+- Hook
+- Body
+- Visual prompts
+- CTA
+
+---
+
+## 2. Stable Diffusion (runwayml/stable-diffusion-v1-5)
+- Runs locally via diffusers
+- ~5.5GB model download
+- CPU-based in current setup (GPU optional)
+
+Used for:
+- Scene image generation
+- 512x512 → scaled to 1280x720 in video phase
+
+Note:
+Performance depends heavily on:
+- CPU cores
+- RAM
+- GPU availability
+
+---
+
+## 3. Edge-TTS
+- Neural voice generation
+- Produces MP3 narration per scene
+- Voice parameters adjustable
+
+---
+
+## 4. FFmpeg
+- Scene rendering
+- Image → video conversion
+- Audio mixing
+- Scene transitions
+- Final merge
+
+Current Output:
+- 1280x720
+- 25fps
+- AAC audio
+- H264 encoding
+
+---
+
+## 5. FastAPI
+- Exposes pipeline as HTTP service
+- Endpoint: POST /generate?topic=...
+- Runs on port 8000
+- Enables workflow automation
+
+---
+
+## 6. n8n (Docker Local)
+- Self-hosted workflow automation
+- HTTP Request → FastAPI trigger
+- Manual trigger supported
+- Uses host.docker.internal to reach local API
+
+---
+
+# Project Structure
 
 ```
 
-ai-shorts-engine/
+shorts-engine/
 │
 ├── scripts/
 │   ├── script_engine.py
 │   ├── scene_engine.py
 │   ├── audio_engine.py
-│   └── image_engine.py
+│   ├── image_engine.py
+│   ├── video_engine.py
+│   ├── pipeline.py
+│   ├── api_server.py
+│   │
+│   ├── config.py
+│   ├── schema.py
+│   └── utils.py
 │
 ├── assets/
-│   ├── audio/
-│   └── images/
+│   ├── audio/          # Generated voice files (ignored in git)
+│   ├── images/         # Generated SD images (ignored in git)
+│   ├── music/          # Background music (optional track)
+│   ├── temp/           # Temporary video segments (ignored)
+│   └── output/         # Final rendered videos (ignored)
 │
+├── venv/               # Virtual environment (ignored)
 ├── requirements.txt
 ├── .gitignore
-├── .env.example
 └── README.md
+```
+
+---
+
+# Setup Instructions
+
+## 1. Clone Repository
+
+```
+
+git clone <repo>
+cd shorts-engine
 
 ```
 
 ---
 
-## Technologies Used
-
-### AI / ML
-- Ollama (local LLM runtime)
-- Mistral 7B
-- Stable Diffusion v1.5 (via diffusers, CPU mode)
-
-### Audio
-- gTTS (Text-to-Speech)
-- FFmpeg (duration probing and future video assembly)
-
-### Automation
-- n8n (Docker-based optional workflow automation)
-
----
-
-## Setup Instructions
-
-### 1. Clone Repository
-
-```
-
-git clone <your_repo_url>
-cd ai-shorts-engine
-
-```
-
----
-
-### 2. Create Virtual Environment
+## 2. Create Virtual Environment
 
 ```
 
@@ -133,19 +166,24 @@ venv\Scripts\activate
 
 ```
 
----
-
-### 3. Install CPU PyTorch
+Verify:
 
 ```
 
-pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cpu](https://download.pytorch.org/whl/cpu)
+where python
+
+```
+
+It must point to:
+```
+
+shorts-engine\venv\Scripts\python.exe
 
 ```
 
 ---
 
-### 4. Install Project Dependencies
+## 3. Install Dependencies
 
 ```
 
@@ -155,13 +193,11 @@ pip install -r requirements.txt
 
 ---
 
-### 5. Install Ollama
+## 4. Install & Run Ollama
 
-Download from:
+Install Ollama.
 
-https://ollama.com
-
-Pull the model:
+Pull model:
 
 ```
 
@@ -169,150 +205,206 @@ ollama pull mistral
 
 ```
 
-Start Ollama:
+Start Ollama automatically (runs in background).
+
+---
+
+## 5. First Run (Manual Test)
 
 ```
 
-ollama serve
+python scripts/pipeline.py
+
+```
+
+This will:
+- Generate script
+- Create scenes
+- Generate audio
+- Generate images
+- Build final video
+
+Output:
+```
+
+assets/output/final_video.mp4
 
 ```
 
 ---
 
-### 6. Run Script Engine
+# Running API Server
+
+Important: Activate venv first.
 
 ```
 
-python scripts/script_engine.py
+venv\Scripts\activate
+python scripts/api_server.py
 
 ```
 
-Generates structured JSON script.
+Server runs on:
+```
+
+[http://localhost:8000](http://localhost:8000)
+
+```
+
+Test in browser:
+```
+
+[http://localhost:8000/docs](http://localhost:8000/docs)
+
+```
+
+Test endpoint:
+```
+
+POST /generate?topic=Black Holes
+
+```
 
 ---
 
-### 7. Run Scene Builder
+# n8n Integration
+
+If running n8n via Docker:
+
+Use URL:
 
 ```
 
-python scripts/scene_engine.py
+[http://host.docker.internal:8000/generate?topic=YourTopic](http://host.docker.internal:8000/generate?topic=YourTopic)
 
 ```
 
-Converts script into timed scenes.
+Method:
+POST
+
+Do NOT send topic in body.
+Send as query parameter.
 
 ---
 
-### 8. Run Audio Engine
+# Performance Notes
+
+This system is hardware dependent.
+
+Performance depends on:
+
+- CPU cores
+- Available RAM
+- GPU availability (currently CPU mode)
+- Disk speed (model loading)
+- Stable Diffusion inference speed
+
+Expected timings (CPU mode):
+
+- Script generation: 30–60s
+- Image generation (4 scenes): 3–6 min
+- Video assembly: <30s
+
+Total: ~5–8 minutes per video (CPU-only system)
+
+GPU acceleration can reduce this drastically.
+
+---
+
+# Important Operational Notes
+
+- Deleting assets/audio and assets/images before rerun is safe.
+- assets/temp is auto-managed.
+- Stable Diffusion loads once per pipeline execution.
+- Always run FastAPI inside virtual environment.
+- Never mix global Python with venv.
+
+---
+
+# Known Limitations (Current Version)
+
+- CPU-only image generation
+- Slideshow style (not true 3D)
+- Basic fade transitions
+- No motion synthesis yet
+- No subtitle rendering yet
+
+---
+
+# Future Upgrade Directions
+
+- GPU acceleration (CUDA)
+- Motion interpolation
+- Camera zoom effects
+- Subtitle overlay (burned-in)
+- Better voice tuning
+- Parallel processing
+- Model warm-loading
+- Persistent SD pipeline memory
+
+---
+
+# Requirements.txt
+
+Ensure it includes:
 
 ```
 
-python scripts/audio_engine.py
+fastapi
+uvicorn
+requests
+edge-tts
+diffusers
+transformers
+torch
+Pillow
+python-dotenv
+replicate
 
 ```
 
-Generates:
-- MP3 narration files
-- Real duration metadata
-
 ---
 
-### 9. Run Image Engine
-
-First run downloads Stable Diffusion (~4–7GB).
+# .gitignore Essentials
 
 ```
 
-python scripts/image_engine.py
+venv/
+**pycache**/
+*.pyc
+assets/audio/
+assets/images/
+assets/temp/
+assets/output/
+.env
 
 ```
 
-Generates scene images locally.
-
 ---
 
-## Environment Variables
+# Final Output
 
-This project currently runs fully locally and does NOT require API keys.
-
-However, `.env.example` is included for future scalability.
-
-Example `.env.example`:
+Final rendered file:
 
 ```
 
-HF_API_TOKEN=
-REPLICATE_API_TOKEN=
-YOUTUBE_API_KEY=
+assets/output/final_video.mp4
 
 ```
 
-You do NOT need to fill these for the current local setup.
-
-If future external APIs are added, create a `.env` file (not committed to git) and place secrets there.
-
-`.env` must NEVER be committed.
-
----
-
-## Version Control Rules
-
-### Safe to Commit
-
-- All Python scripts
-- requirements.txt
-- README.md
-- .env.example
-
-### Never Commit
-
-- venv/
-- assets/
-- Model cache directories
-- .env
-- API keys
-- Generated media files
-
-`.gitignore` already excludes these.
+Fully local.
+Fully automated.
+Pipeline-ready.
+Workflow-ready.
 
 ---
 
-## Why Fully Local?
+System Status: Functional End-to-End  
+Automation Status: FastAPI + n8n Connected  
+Deployment Mode: Local  
+Dependency Mode: Offline-first  
 
-- No unstable public API dependencies
-- No rate limits
-- No external cost
-- Full control over inference
-- Reproducible environment
-- Clean system design learning
-
----
-
-## Current Project Status
-
-✔ Script Generation  
-✔ Scene Abstraction  
-✔ Audio Generation  
-✔ Local Image Generation  
-⬜ Video Assembly (next stage)  
-⬜ Full Automation Integration  
-
----
-
-## Future Enhancements
-
-- GPU acceleration
-- Ken Burns animation for static images
-- Background music integration
-- Subtitle generation
-- YouTube upload automation
-- Metadata auto-generation
-- Batch queue system
-- Scene transition effects
-
----
-
-## License
+```
+# License
 
 Educational and experimental use.
-```
