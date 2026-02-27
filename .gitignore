@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated assets
+assets/audio/
+assets/images/
+
+# Model cache (HuggingFace)
+.cache/
+*.ckpt
+*.safetensors
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

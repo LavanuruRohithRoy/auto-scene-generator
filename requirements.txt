@@ -1,0 +1,9 @@
+requests
+pydantic
+python-dotenv
+gTTS
+diffusers
+transformers
+accelerate
+safetensors
+pillow
