@@ -404,7 +404,11 @@ Automation Status: FastAPI + n8n Connected
 Deployment Mode: Local  
 Dependency Mode: Offline-first  
 
-```
+---
+
 # License
 
 Educational and experimental use.
+
+---
+
