@@ -17,10 +17,11 @@ Format:
 }}
 
 Rules:
-- 65–80 words total
-- Exactly 3 visuals
+- 75–90 words total
+- Exactly 4 visuals
 - Visuals max 8 words each
 - Informative and concise
+- Sentences slightly longer and natural spoken rhythm
 - No numbering
 - No nested objects
 

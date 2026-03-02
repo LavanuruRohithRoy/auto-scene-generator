@@ -19,6 +19,8 @@ Everything runs locally. No cloud dependency required.
 
 # System Architecture
 
+```
+
 User Topic
    ↓
 Ollama (LLM – Script JSON)
@@ -36,6 +38,9 @@ Final MP4 Output
 FastAPI Endpoint (/generate)
    ↓
 n8n Workflow Automation
+
+```
+
 
 ---
 
@@ -404,11 +409,7 @@ Automation Status: FastAPI + n8n Connected
 Deployment Mode: Local  
 Dependency Mode: Offline-first  
 
----
-
+```
 # License
 
 Educational and experimental use.
-
----
-

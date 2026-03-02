@@ -15,8 +15,8 @@ async def generate_audio_async(text: str, path: str):
     communicate = edge_tts.Communicate(
         text=text,
         voice=VOICE,
-        rate="+5%",
-        volume="+20%"
+        volume="+10%",
+        rate="+2%"
     )
     await communicate.save(path)
 

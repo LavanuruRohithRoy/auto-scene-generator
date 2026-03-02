@@ -25,7 +25,8 @@ def attach_images(pipe, scenes):
     ensure_image_dir()
 
     for i, scene in enumerate(scenes, 1):
-        image = pipe(scene["visual_prompt"], num_inference_steps=20).images[0]
+        image = pipe(scene["visual_prompt"] + 
+", photorealistic, cinematic lighting, depth of field, sharp focus, realistic textures, high dynamic range, no text, no watermark", num_inference_steps=20).images[0]
         path = os.path.join(IMAGE_DIR, f"scene_{i}.png")
         image.save(path)
         scene["image_path"] = path

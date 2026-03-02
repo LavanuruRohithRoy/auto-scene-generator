@@ -1,7 +1,7 @@
 import re
 
-WORDS_PER_SECOND = 2.5
-MIN_DURATION = 2.0
+WORDS_PER_SECOND = 2
+MIN_DURATION = 3.5
 
 
 def split_sentences(text: str):

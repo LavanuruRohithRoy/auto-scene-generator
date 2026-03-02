@@ -1,7 +1,10 @@
 import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, ".."))
+
+sys.path.append(PROJECT_ROOT)
 os.chdir(PROJECT_ROOT)
 
 def run_pipeline(topic):
@@ -20,4 +23,15 @@ def run_pipeline(topic):
 
     final_video = build_video(scenes)
 
-    return final_video
+    from youtube_uploader import upload_video
+
+    video_id = upload_video(
+        final_video,
+        title=f"{topic} Explained",
+        description=f"{topic} in short format. #shorts"
+    )
+
+    return {
+        "video_path": final_video,
+        "youtube_video_id": video_id
+    }

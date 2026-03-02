@@ -10,6 +10,22 @@ def ensure_dirs():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(TEMP_DIR, exist_ok=True)
 
+def create_padding(index):
+    pad_path = os.path.join(TEMP_DIR, f"pad_{index}.mp4")
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-f", "lavfi",
+        "-i", "color=black:s=1080x1920:d=0.5",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-t", "0.5",
+        pad_path
+    ]
+
+    subprocess.run(cmd)
+    return pad_path
 
 def create_scene_video(scene, index):
     output_path = os.path.join(TEMP_DIR, f"scene_{index}.mp4")
@@ -22,18 +38,11 @@ def create_scene_video(scene, index):
         "-loop", "1",
         "-i", scene["image_path"],
         "-i", scene["audio_path"],
-        "-filter_complex",
-        f"""
-        [0:v]scale=1920:1080,
-        fade=t=in:st=0:d=0.5,
-        fade=t=out:st={float(duration)-0.5}:d=0.5[v];
-        [1:a]volume=1.8,aresample=44100[a]
-        """,
-        "-map", "[v]",
-        "-map", "[a]",
-        "-c:v", "libx264",
         "-t", duration,
+        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+        "-c:v", "libx264",
         "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
         output_path
     ]
 
@@ -76,12 +85,7 @@ def add_background_music(video_path):
         "-i", video_path,
         "-i", MUSIC_PATH,
         "-filter_complex",
-        """
-        [1:a]volume=0.25[a2];
-        [0:a][a2]amix=inputs=2:duration=first:dropout_transition=2[aout]
-        """,
-        "-map", "0:v",
-        "-map", "[aout]",
+        "amix=inputs=2:duration=shortest",
         "-c:v", "copy",
         "-c:a", "aac",
         final_output
@@ -96,7 +100,10 @@ def build_video(scenes):
     clips = []
 
     for i, scene in enumerate(scenes, 1):
-        clips.append(create_scene_video(scene, i))
+        clips.append(create_padding(i))
+
+        scene_clip = create_scene_video(scene, i)
+        clips.append(scene_clip)
 
     merged = concatenate_scenes(clips)
     final = add_background_music(merged)
