@@ -9,3 +9,6 @@ safetensors
 pillow
 fastapi
 uvicorn
+google-apis-python-client
+google-auth-oauthlib
+google-auth-httplib2

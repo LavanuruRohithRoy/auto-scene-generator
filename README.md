@@ -1,117 +1,275 @@
-# AI Shorts Engine (Local Autonomous Pipeline)
+# AI Shorts Engine
+### Local Autonomous YouTube Shorts Generation Pipeline
 
-An end-to-end fully local AI-powered short video generation system.
+An **end-to-end locally running AI video generation system** that automatically creates short vertical videos from a topic input.
 
-This system automatically generates:
+Unlike most AI content tools, this system runs **entirely on local infrastructure** and does **not depend on external AI APIs**. All core generation tasks — script writing, voice narration, image creation, and video assembly — are executed using locally hosted models and tools.
 
-- Structured script (LLM – Ollama)
-- Scene breakdown
-- Neural voice narration
-- AI-generated cinematic images (Stable Diffusion)
-- Background music mix
-- Final stitched vertical video (FFmpeg)
-- API endpoint for automation (FastAPI)
-- n8n workflow integration (Docker self-hosted)
+This makes the system:
 
-Everything runs locally. No cloud dependency required.
+- **Offline capable**
+- **API-independent**
+- **Self-hosted**
+- **Automation ready**
+- **Fully controllable**
+
+The pipeline integrates **local LLMs, generative media models, and workflow automation** to produce a fully autonomous short-video generation engine.
+
+---
+
+# Key Highlights
+
+• Fully **local AI pipeline**  
+• **No cloud AI APIs required**  
+• Automated **script → video generation**  
+• **Stable Diffusion based visuals**  
+• **Neural narration synthesis**  
+• **Automated workflow orchestration (n8n)**  
+• **FastAPI service interface**  
+• Designed for **offline-first AI content creation**
+
+This system demonstrates how modern AI tools can be orchestrated to build a **self-contained automated media generation pipeline**.
 
 ---
 
 # System Architecture
 
+The system follows a modular architecture where each stage of the pipeline performs a specialized task.
+
 ```
 
 User Topic
-   ↓
-Ollama (LLM – Script JSON)
-   ↓
-Scene Engine (Text → Timed Scenes)
-   ↓
-Audio Engine (Edge TTS)
-   ↓
-Image Engine (Stable Diffusion v1.5)
-   ↓
-Video Engine (FFmpeg Assembly + BGM)
-   ↓
+↓
+Ollama (Local LLM Script Generation)
+↓
+Scene Engine (Script → Structured Scenes)
+↓
+Audio Engine (Neural Voice Narration)
+↓
+Image Engine (Stable Diffusion Visuals)
+↓
+Video Engine (Scene Assembly + Background Music)
+↓
 Final MP4 Output
-   ↓
+↓
 FastAPI Endpoint (/generate)
-   ↓
+↓
 n8n Workflow Automation
 
 ```
 
+Each module is isolated and communicates through structured data outputs, making the system easy to extend or modify.
 
 ---
 
-# Core Technologies Used
+# Workflow Automation
 
-## 1. Ollama (LLM)
-- Model: mistral
-- Purpose: Generates structured JSON script
-- Runs locally on port 11434
+The generation pipeline is orchestrated using **n8n**, a self-hosted automation platform.
+
+The workflow performs the following tasks:
+
+1. Accepts a topic input
+2. Sends the topic to the FastAPI backend
+3. Triggers the AI generation pipeline
+4. Validates pipeline response
+5. Returns success or failure information
+
+### n8n Workflow
+
+![Workflow](workflow/n8n_workflow.png)
+
+This workflow structure enables future extensions such as:
+
+- scheduled video generation
+- multi-topic batch generation
+- integration with publishing platforms
+- content automation pipelines
+
+---
+
+# Core Technologies
+
+This project combines multiple AI and media processing technologies into a unified system.
+
+---
+
+## Ollama (Local LLM)
+
+Model used:
+
+```
+
+mistral
+
+```
+
+Purpose:
+
+- Generates structured script content
+- Produces hooks, body text, and scene prompts
+- Outputs structured JSON used by the pipeline
+
+Advantages:
+
+- Runs locally
 - No API keys required
+- Offline capable
+- Fast response times
+
+Default service endpoint:
+
+```
+
+[http://localhost:11434](http://localhost:11434)
+
+```
+
+---
+
+## Stable Diffusion
+
+Model used:
+
+```
+
+runwayml/stable-diffusion-v1-5
+
+```
 
 Used for:
-- Hook
-- Body
-- Visual prompts
-- CTA
+
+- generating visual images for scenes
+- converting prompts into cinematic visuals
+
+Model size:
+
+```
+
+~5.5GB
+
+```
+
+Current configuration:
+
+- CPU-based inference
+- integrated through HuggingFace Diffusers
+
+Image generation output:
+
+```
+
+1920x1080 images
+
+```
+
+Images are later scaled and formatted during video assembly.
+
+Performance is strongly dependent on:
+
+- CPU performance
+- RAM availability
+- optional GPU acceleration
 
 ---
 
-## 2. Stable Diffusion (runwayml/stable-diffusion-v1-5)
-- Runs locally via diffusers
-- ~5.5GB model download
-- CPU-based in current setup (GPU optional)
+## Edge-TTS
 
-Used for:
-- Scene image generation
-- 512x512 → scaled to 1280x720 in video phase
+Edge-TTS is used for neural voice synthesis.
 
-Note:
-Performance depends heavily on:
-- CPU cores
-- RAM
-- GPU availability
+Features:
+
+- high quality neural voices
+- adjustable speech speed
+- adjustable volume
+- fast audio generation
+
+Each scene generates an independent narration track that is later merged into the final video.
 
 ---
 
-## 3. Edge-TTS
-- Neural voice generation
-- Produces MP3 narration per scene
-- Voice parameters adjustable
+## FFmpeg
+
+FFmpeg is responsible for video rendering and assembly.
+
+Responsibilities include:
+
+- converting images into video clips
+- synchronizing narration with scenes
+- mixing background music
+- concatenating scene segments
+- encoding final video output
+
+Current encoding settings:
+
+```
+
+Resolution : 1280x720
+Frame Rate : 25 FPS
+Video Codec: H264
+Audio Codec: AAC
+Format     : MP4
+
+```
 
 ---
 
-## 4. FFmpeg
-- Scene rendering
-- Image → video conversion
-- Audio mixing
-- Scene transitions
-- Final merge
+## FastAPI Backend
 
-Current Output:
-- 1280x720
-- 25fps
-- AAC audio
-- H264 encoding
+FastAPI exposes the entire pipeline as an HTTP service.
+
+Primary endpoint:
+
+```
+
+POST /generate
+
+```
+
+Example request:
+
+```
+
+[http://localhost:8000/generate?topic=BlackHoles](http://localhost:8000/generate?topic=Black Holes)
+
+```
+
+The API performs the following:
+
+- triggers the AI generation pipeline
+- returns pipeline status
+- returns generated video path
+
+FastAPI enables:
+
+- automation
+- remote triggering
+- workflow integration
 
 ---
 
-## 5. FastAPI
-- Exposes pipeline as HTTP service
-- Endpoint: POST /generate?topic=...
-- Runs on port 8000
-- Enables workflow automation
+## n8n Automation
 
----
+n8n serves as the orchestration layer for this project.
 
-## 6. n8n (Docker Local)
-- Self-hosted workflow automation
-- HTTP Request → FastAPI trigger
-- Manual trigger supported
-- Uses host.docker.internal to reach local API
+Deployment mode:
+
+```
+
+Docker self-hosted
+
+```
+
+The workflow sends HTTP requests to the FastAPI backend.
+
+Since n8n runs in Docker, it accesses the host machine using:
+
+```
+
+[http://host.docker.internal:8000](http://host.docker.internal:8000)
+
+```
+
+This allows the container to communicate with the local API server.
 
 ---
 
@@ -129,49 +287,62 @@ shorts-engine/
 │   ├── video_engine.py
 │   ├── pipeline.py
 │   ├── api_server.py
-│   │
 │   ├── config.py
 │   ├── schema.py
 │   └── utils.py
 │
 ├── assets/
-│   ├── audio/          # Generated voice files (ignored in git)
-│   ├── images/         # Generated SD images (ignored in git)
-│   ├── music/          # Background music (optional track)
-│   ├── temp/           # Temporary video segments (ignored)
-│   └── output/         # Final rendered videos (ignored)
+│   ├── audio/      # generated narration files
+│   ├── images/     # generated images
+│   ├── music/      # optional background track
+│   ├── temp/       # temporary video segments
+│   └── output/     # final rendered videos
 │
-├── venv/               # Virtual environment (ignored)
+├── workflow/
+│   └── n8n_workflow.png
+│
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+
 ```
+
+Generated media files are excluded from Git using `.gitignore`.
 
 ---
 
-# Setup Instructions
+# Installation Guide
 
-## 1. Clone Repository
+## Clone Repository
 
 ```
 
-git clone <repo>
+git clone <https://github.com/LavanuruRohithRoy/auto-scene-generator.git>
 cd shorts-engine
 
 ```
 
 ---
 
-## 2. Create Virtual Environment
+## Create Virtual Environment
 
 ```
 
 python -m venv venv
+
+```
+
+Activate environment:
+
+Windows:
+
+```
+
 venv\Scripts\activate
 
 ```
 
-Verify:
+Verify Python location:
 
 ```
 
@@ -179,7 +350,8 @@ where python
 
 ```
 
-It must point to:
+Expected:
+
 ```
 
 shorts-engine\venv\Scripts\python.exe
@@ -188,7 +360,7 @@ shorts-engine\venv\Scripts\python.exe
 
 ---
 
-## 3. Install Dependencies
+## Install Dependencies
 
 ```
 
@@ -198,11 +370,11 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Install & Run Ollama
+# Install Ollama
 
-Install Ollama.
+Download and install Ollama.
 
-Pull model:
+Pull the required model:
 
 ```
 
@@ -210,11 +382,21 @@ ollama pull mistral
 
 ```
 
-Start Ollama automatically (runs in background).
+Start the Ollama service:
+
+```
+
+ollama serve
+
+```
+
+The LLM will now be accessible locally.
 
 ---
 
-## 5. First Run (Manual Test)
+# Running the Pipeline
+
+You can run the pipeline directly for testing.
 
 ```
 
@@ -222,14 +404,16 @@ python scripts/pipeline.py
 
 ```
 
-This will:
-- Generate script
-- Create scenes
-- Generate audio
-- Generate images
-- Build final video
+This process will:
 
-Output:
+1. Generate script
+2. Build scene structure
+3. Generate narration
+4. Generate images
+5. Assemble video
+
+Output location:
+
 ```
 
 assets/output/final_video.mp4
@@ -238,35 +422,29 @@ assets/output/final_video.mp4
 
 ---
 
-# Running API Server
+# Running the API Server
 
-Important: Activate venv first.
+Start the FastAPI server.
 
 ```
 
-venv\Scripts\activate
 python scripts/api_server.py
 
 ```
 
-Server runs on:
+Server address:
+
 ```
 
 [http://localhost:8000](http://localhost:8000)
 
 ```
 
-Test in browser:
+Interactive API documentation:
+
 ```
 
 [http://localhost:8000/docs](http://localhost:8000/docs)
-
-```
-
-Test endpoint:
-```
-
-POST /generate?topic=Black Holes
 
 ```
 
@@ -274,9 +452,7 @@ POST /generate?topic=Black Holes
 
 # n8n Integration
 
-If running n8n via Docker:
-
-Use URL:
+If n8n is running inside Docker, the API should be accessed using:
 
 ```
 
@@ -284,112 +460,109 @@ Use URL:
 
 ```
 
-Method:
+HTTP method:
+
+```
+
 POST
 
-Do NOT send topic in body.
-Send as query parameter.
+```
+
+Topic should be passed as a query parameter.
 
 ---
 
-# Performance Notes
+# Hardware Requirements
 
-This system is hardware dependent.
+This system is designed to run locally but its performance depends on hardware resources.
 
-Performance depends on:
+Recommended minimum configuration:
 
-- CPU cores
-- Available RAM
-- GPU availability (currently CPU mode)
-- Disk speed (model loading)
-- Stable Diffusion inference speed
+```
 
-Expected timings (CPU mode):
+CPU: 4 cores
+RAM: 16 GB
+Storage: 20 GB free space
 
-- Script generation: 30–60s
-- Image generation (4 scenes): 3–6 min
-- Video assembly: <30s
+```
 
-Total: ~5–8 minutes per video (CPU-only system)
+Optional improvements:
 
-GPU acceleration can reduce this drastically.
+```
+
+GPU: NVIDIA CUDA compatible GPU
+RAM: 32 GB recommended for heavy workloads
+SSD: improves model loading speed
+
+```
 
 ---
 
-# Important Operational Notes
+# Performance Expectations
 
-- Deleting assets/audio and assets/images before rerun is safe.
-- assets/temp is auto-managed.
+Performance varies depending on system hardware.
+
+Typical CPU-only performance:
+
+| Stage | Estimated Time |
+|------|---------------|
+| Script Generation | 30–60 seconds |
+| Image Generation | 3–6 minutes |
+| Audio Generation | <30 seconds |
+| Video Assembly | <30 seconds |
+
+Total pipeline time:
+
+```
+
+~5–8 minutes per video
+
+```
+
+GPU acceleration can significantly reduce generation time.
+
+---
+
+# Operational Notes
+
+- Generated media folders are excluded from version control.
 - Stable Diffusion loads once per pipeline execution.
-- Always run FastAPI inside virtual environment.
-- Never mix global Python with venv.
+- The system should always run inside a virtual environment.
+- Ollama must be running before triggering the pipeline.
+- Deleting temporary assets is safe between runs.
 
 ---
 
-# Known Limitations (Current Version)
+# Known Limitations
 
-- CPU-only image generation
-- Slideshow style (not true 3D)
-- Basic fade transitions
-- No motion synthesis yet
-- No subtitle rendering yet
+Current system version includes several limitations:
 
----
-
-# Future Upgrade Directions
-
-- GPU acceleration (CUDA)
-- Motion interpolation
-- Camera zoom effects
-- Subtitle overlay (burned-in)
-- Better voice tuning
-- Parallel processing
-- Model warm-loading
-- Persistent SD pipeline memory
+- CPU-based image generation
+- slideshow-style scene visuals
+- limited motion effects
+- no subtitle rendering
+- no advanced video transitions
 
 ---
 
-# Requirements.txt
+# Future Improvements
 
-Ensure it includes:
+Possible enhancements for future versions include:
 
-```
-
-fastapi
-uvicorn
-requests
-edge-tts
-diffusers
-transformers
-torch
-Pillow
-python-dotenv
-replicate
-
-```
-
----
-
-# .gitignore Essentials
-
-```
-
-venv/
-**pycache**/
-*.pyc
-assets/audio/
-assets/images/
-assets/temp/
-assets/output/
-.env
-
-```
+- GPU acceleration for Stable Diffusion
+- animated camera motion
+- subtitle generation
+- improved prompt engineering
+- scene coherence improvements
+- parallel generation pipeline
+- automated YouTube publishing
+- thumbnail generation automation
 
 ---
 
 # Final Output
 
-Final rendered file:
+Generated videos are stored at:
 
 ```
 
@@ -397,19 +570,10 @@ assets/output/final_video.mp4
 
 ```
 
-Fully local.
-Fully automated.
-Pipeline-ready.
-Workflow-ready.
+The system produces **vertical short-form videos ready for publishing**.
 
 ---
 
-System Status: Functional End-to-End  
-Automation Status: FastAPI + n8n Connected  
-Deployment Mode: Local  
-Dependency Mode: Offline-first  
-
-```
 # License
 
-Educational and experimental use.
+This project is intended for **educational and experimental use**.

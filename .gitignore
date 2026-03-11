@@ -9,8 +9,11 @@ __pycache__/
 
 # Generated assets
 assets/
-assets/audio/
-assets/images/
+assets/audio/*
+assets/images/*
+assets/music/*
+assets/temp/*
+assets/output/*
 
 # Model cache (HuggingFace)
 .cache/
